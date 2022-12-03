@@ -21,23 +21,25 @@ import static org.junit.Assert.assertEquals;
 public class GetUserInfoSteps {
 
     Response response;
-    String requestUsername;
+    String requestUserName;
     public static String token;
     String responseUserID;
     String responseUserName;
     int responseStatusCode;
-    List<Map<String, Object>> books;
+    List<Map<String,Object>> books;
     List<String> allBooksISBN_List;
     List<String> userBooksISBN_List;
 
-    @When("Generate token request is sent to related end point")
+    @When("Generate Token request is sent to related end point")
     public void generateTokenRequestIsSentToRelatedEndPoint() {
+        requestUserName = ConfigurationReader.getProperty("userName");
+
         baseURI = ConfigurationReader.getProperty("baseUrl");
         basePath = ConfigurationReader.getProperty("apiGenerateToken");
         Response responseToken = given().accept(ContentType.JSON)
                 .and().contentType(ContentType.JSON)
-                .and().body(new ResponseApiPage().getRequestBody()) // Body comes from POM
-                .when().post(); // End point comes from Before method
+                .and().body(new ResponseApiPage().getRequestBody()) // body comes from POM
+                .when().post(); // end point comes from Before method
         JsonPath jsonPath = responseToken.jsonPath();
         token = "Bearer " + jsonPath.getString("token");
         System.out.println("token = " + token);
@@ -49,17 +51,18 @@ public class GetUserInfoSteps {
         basePath = ConfigurationReader.getProperty("apiUser");
         String userID = BookStoreApiUtils.readFromFile();
         response = given().accept(ContentType.JSON)
-                .and().header("Authorization", token)
-                .and().get("/" + userID);
+                .and().header("Authorization",token)
+                .and().get("/"+userID);
+        response.prettyPrint();
     }
 
     @And("User captures status code, userID, username and books information for GET")
     public void userCapturesStatusCodeUserIDUsernameAndBooksInformationForGET() {
-        Map<Object, Object> responseMap = response.as(Map.class);
+        Map<Object,Object> responseMap = response.as(Map.class);
         responseUserID = (String) responseMap.get("userID");
         responseStatusCode = response.statusCode();
         responseUserName = (String) responseMap.get("username");
-        books = (List<Map<String, Object>>) responseMap.get("books");
+        books = (List<Map<String,Object>>) responseMap.get("books");
     }
 
     @And("User sends GET request to receive all books information")
@@ -73,16 +76,16 @@ public class GetUserInfoSteps {
         allBooksISBN_List = jsonPath.getList("books.isbn");
     }
 
-    @Then("User verifies status code, username and books information")
-    public void userVerifiesStatusCodeUsernameAndBooksInformation() {
-        assertEquals(201, responseStatusCode);
-        assertEquals(requestUsername, responseUserName);
-        System.out.println("books.size() = " + books.size());
+    @Then("Verifies status code username and books information")
+    public void verifiesStatusCodeUsernameAndBooksInformation() {
+        assertEquals(200,responseStatusCode);
+        assertEquals(requestUserName,responseUserName);
+        System.out.println("books = " + books.size());
+        // we have a list of books, and they ISBN IDs, User adds some books, added books should be one of these ISBNs in the Database
         JsonPath jsonPath = response.jsonPath();
         userBooksISBN_List = new ArrayList<>();
         userBooksISBN_List = jsonPath.getList("books.isbn");
         assertTrue(allBooksISBN_List.containsAll(userBooksISBN_List));
-
     }
 
 }
