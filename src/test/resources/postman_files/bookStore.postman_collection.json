@@ -1,0 +1,534 @@
+{
+	"info": {
+		"_postman_id": "1303f92b-2c84-4884-b184-c635c62aa1a9",
+		"name": "BookStore",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21905388"
+	},
+	"item": [
+		{
+			"name": "create user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//set userID to environment\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"userID\", jsonData.userID);\r",
+							"\r",
+							"//verify status code\r",
+							"pm.test(\"Verify status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"//verify userID\r",
+							"pm.test(\"Verify userID is not null\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.userID).not.null;\r",
+							"});\r",
+							"\r",
+							"//verify username\r",
+							"pm.test(\"Verify the username is expected\", function(){\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.username).is.not.null;\r",
+							"});\r",
+							"\r",
+							"//verify content-Type\r",
+							"pm.test(\"Content-Type is present\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const userName = \"{{$randomFirstName}}\";\r",
+							"pm.environment.set(\"userName\", \"userName\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userName\": \"{{userName}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/Account/v1/User",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"Account",
+						"v1",
+						"User"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "generate token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//generate token\r",
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"token\", jsonData.token);\r",
+							"\r",
+							"//verify status code\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"//verify expire date\r",
+							"pm.test(\"Verify expire date is more than 5 days\", function(){\r",
+							"    let dateHeaderArray = pm.response.headers.get('Date').split(' ');\r",
+							"    let todayDate = dateHeaderArray[1];\r",
+							"    console.log(todayDate);\r",
+							"\r",
+							"    let expiresDate = pm.response.json().expires.substr(8,2);\r",
+							"    console.log(expiresDate);\r",
+							"\r",
+							"    let verify = expiresDate - todayDate;\r",
+							"    console.log(verify);\r",
+							"\r",
+							"    pm.expect(verify).greaterThan(5);\r",
+							"});\r",
+							"\r",
+							"//verify status\r",
+							"pm.test(\"Verify status is 'success'\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.status).to.eql(\"Success\");\r",
+							"});\r",
+							"\r",
+							"//verify result\r",
+							"pm.test(\"Verify result is 'User authorized successfully.'\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.result).to.eql(\"User authorized successfully.\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userName\": \"{{userName}}\",\r\n  \"password\": \"{{password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/Account/v1/GenerateToken",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"Account",
+						"v1",
+						"GenerateToken"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//verify status code\r",
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"//verify header\r",
+							"pm.test(\"Content-Type is present\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\");\r",
+							"});\r",
+							"\r",
+							"//verify the ISBN\r",
+							"pm.test(\"Verify the ISBN of the added book\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.books[0].isbn).to.eql(\"9781449325862\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"{{userID}}\",\r\n  \"collectionOfIsbns\": [\r\n    {\r\n      \"isbn\": \"{{testISBN}}\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/BookStore/v1/Books",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"BookStore",
+						"v1",
+						"Books"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get books",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//verify status code\r",
+							"pm.test(\"Verify 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"//verify headers\r",
+							"pm.test(\"Verify Content-Type is Equal Application/Json\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\",\"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify Server Content\", function () {\r",
+							"    pm.response.to.have.header(\"Server\",\"nginx/1.17.10 (Ubuntu)\");\r",
+							"});\r",
+							"\r",
+							"//verify first book\r",
+							"pm.test(\"Verify first book's title, publish_date, pages and description\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.books[0].title).to.eql(\"Git Pocket Guide\");\r",
+							"    pm.expect(jsonData.books[0].publish_date).includes(\"2020-06-04\");\r",
+							"    pm.expect(jsonData.books[0].pages).to.eql(234);\r",
+							"    pm.expect(jsonData.books[0].description).contains(\"Git for new users\");\r",
+							"});\r",
+							"\r",
+							"//verify books amount\r",
+							"pm.test(\"Verify books amount equals 8\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    const isbnList = jsonData.books;\r",
+							"    pm.expect(isbnList.length).to.eql(8);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/BookStore/v1/Books",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"BookStore",
+						"v1",
+						"Books"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//verify status code\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"//verify username\r",
+							"pm.test(\"Verify username is: \" + pm.environment.get(\"userName\"), function (){\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.username).to.eql(pm.environment.get(\"userName\"));\r",
+							"});\r",
+							"\r",
+							"////verify the ISBN\r",
+							"pm.test(\"Verify the ISBN of the added book\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.books[0].isbn).to.eql(\"9781449325862\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/Account/v1/User/:UUID",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"Account",
+						"v1",
+						"User",
+						":UUID"
+					],
+					"variable": [
+						{
+							"key": "UUID",
+							"value": "{{userID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update book",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//verify status code\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"//verify the ISBN\r",
+							"pm.test(\"Verify the ISBN of the updated book\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.books[0].isbn).to.eql(\"9781449331818\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{userName}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"{{userID}}\",\r\n  \"isbn\": \"9781449331818\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/BookStore/v1/Books/:ISBN",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"BookStore",
+						"v1",
+						"Books",
+						":ISBN"
+					],
+					"variable": [
+						{
+							"key": "ISBN",
+							"value": "{{testISBN}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//verify status code\r",
+							"pm.test(\"Status code is 204 No Content\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{userName}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/Account/v1/User/:UUID",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"Account",
+						"v1",
+						"User",
+						":UUID"
+					],
+					"variable": [
+						{
+							"key": "UUID",
+							"value": "{{userID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user info after delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"//verify status code\r",
+							"pm.test(\"Status code is 401 Unauthorized\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"//verify message\r",
+							"pm.test(\"Verify message is: User not found!\", function (){\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eql(\"User not found!\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/Account/v1/User/:UUID",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"Account",
+						"v1",
+						"User",
+						":UUID"
+					],
+					"variable": [
+						{
+							"key": "UUID",
+							"value": "{{userID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
